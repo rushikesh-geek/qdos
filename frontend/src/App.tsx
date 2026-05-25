@@ -10,7 +10,7 @@ function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
 }
 
-const API_URL = "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const ORGAN_ORDER = ["kidney", "liver", "marrow", "immune", "vascular"];
 
 function buildDayLabels(days: number) {
@@ -91,7 +91,7 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      const resp = await axios.post(`${API_URL}/simulate`, patientData);
+      const resp = await axios.post(`${API_URL}/api/simulate`, patientData);
       if (resp.data.error) {
          setError(resp.data.error);
          setResults(null);
