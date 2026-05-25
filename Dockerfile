@@ -1,5 +1,22 @@
-# Multi-stage build to reduce Docker image size
-FROM python:3.11-slim AS builder
+# Stage 1: Build Node.js frontend
+FROM node:18-alpine AS frontend-builder
+
+WORKDIR /app/frontend
+
+# Copy frontend files
+COPY frontend/package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy frontend source
+COPY frontend/ .
+
+# Build frontend
+RUN npm run build
+
+# Stage 2: Build Python dependencies
+FROM python:3.11-slim AS python-builder
 
 WORKDIR /app
 
@@ -12,7 +29,7 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --user --no-cache-dir -r requirements.txt
 
-# Stage 2: Runtime image
+# Stage 3: Runtime image
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -22,14 +39,14 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python dependencies from builder
-COPY --from=builder /root/.local /root/.local
+COPY --from=python-builder /root/.local /root/.local
 ENV PATH=/root/.local/bin:$PATH
 
 # Copy backend code
 COPY *.py ./
 
-# Copy frontend build
-COPY frontend/dist ./frontend/dist
+# Copy frontend build from frontend-builder stage
+COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
 # Expose port
 EXPOSE 8000

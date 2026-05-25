@@ -29,6 +29,11 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# Frontend build artifacts
+frontend/dist/
+frontend/node_modules/
+frontend/.env.local
+
 # Streamlit
 .streamlit/
 .streamlit/secrets.toml
