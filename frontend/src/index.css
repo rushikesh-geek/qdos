@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-[#F0F4F8] text-slate-800 antialiased;
+  }
+}
+

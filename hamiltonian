@@ -1,0 +1,32 @@
+from quantum_optimizer import OptimizationConfig, run_optimization
+
+
+def main():
+    config = OptimizationConfig(
+        days=3,
+        selected_drugs=["Drug_A", "Drug_B", "Drug_C"],
+        efficacy={"Drug_A": 5.0, "Drug_B": 4.0, "Drug_C": 6.0},
+        toxicity={"Drug_A": 2.0, "Drug_B": 3.0, "Drug_C": 1.0},
+        synergy={("Drug_A", "Drug_B"): 2.0, ("Drug_A", "Drug_C"): -1.0, ("Drug_B", "Drug_C"): 1.0},
+        mutually_exclusive_pairs=[("Drug_A", "Drug_B")],
+        clearance_rate=0.3,
+        toxicity_budget=5.0,
+        alpha=1.0,
+        beta=1.0,
+        gamma=100.0,
+        qaoa_reps=2,
+        use_qiskit=True,
+    )
+
+    solution = run_optimization(config)
+
+    print("Optimal Drug Schedule")
+    for day, drugs in solution.per_day_drugs.items():
+        label = ", ".join(drugs) if drugs else "No drug"
+        print(f"Day {day + 1}: {label}")
+
+    print("\nObjective Score:", solution.metrics["objective_score"])
+
+
+if __name__ == "__main__":
+    main()
