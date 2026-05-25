@@ -55,5 +55,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8000/api/health')" || exit 1
 
-# Run the application
-CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:8000", "-k", "uvicorn.workers.UvicornWorker", "api:app"]
+# Run the application with shell to expand $PORT environment variable
+CMD ["sh", "-c", "gunicorn -w 1 -b 0.0.0.0:${PORT:-8000} -k uvicorn.workers.UvicornWorker api:app"]
