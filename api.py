@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 import numpy as np
+import os
+from pathlib import Path
 
 from quantum_optimizer import (
     DEFAULT_DRUG_LIBRARY,
@@ -24,6 +27,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Health check endpoint
+@app.get("/api/health")
+def health_check():
+    """Health check endpoint for deployment monitoring"""
+    return {"status": "ok", "service": "Q-DOS API"}
+
 class PatientData(BaseModel):
     age: int = 40
     days: int = 14
@@ -41,11 +50,11 @@ class PatientData(BaseModel):
     toxicity_weight: float = 0.1
     toxicity_flush_rate: float = 0.0  # patient clearance rate (0..1)
 
-@app.get("/drugs")
+@app.get("/api/drugs")
 def get_drugs():
     return DEFAULT_DRUG_LIBRARY
 
-@app.post("/simulate")
+@app.post("/api/simulate")
 def simulate(patient: PatientData):
     if not patient.selected_drugs:
         return {"error": "No drugs selected. Choose at least one drug to optimize a schedule."}
@@ -222,3 +231,14 @@ def simulate(patient: PatientData):
             "standard_organ_toxicity": {organ: values.tolist() for organ, values in standard_organ_state.items()},
         }
     }
+
+
+# Mount frontend static files
+frontend_path = Path(__file__).parent / "frontend" / "dist"
+if frontend_path.exists():
+    app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")
+else:
+    # Development mode - print warning
+    print("⚠️  Warning: Frontend build not found. Serve React frontend separately or build it first.")
+    print("    Run: cd frontend && npm install && npm run build")
+
